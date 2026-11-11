@@ -1,1 +1,0 @@
-# eletro_estoque
