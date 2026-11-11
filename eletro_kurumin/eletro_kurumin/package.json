@@ -1,0 +1,8 @@
+{
+  "name": "eletro_kurumin",
+  "version": "1.0.0",
+  "description": "Sistema simples de controle de estoque de componentes eletrônicos",
+  "main": "main.js",
+  "scripts": { "start": "node main.js", "dev": "node --watch main.js" },
+  "dependencies": { "express": "^5.2.1", "mysql2": "^3.24.5" }
+}

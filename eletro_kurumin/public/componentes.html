@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Componentes - Eletro Kurumin</title>
+</head>
+<body>
+    <h1>Controle de componentes</h1>
+    <p><a href="relatorio.html">Ver relatório</a> | <a href="index.html">Sair</a></p>
+
+    <h2>Cadastrar / editar componente</h2>
+    <form id="formComponente">
+        <input type="hidden" id="id_componente">
+        <p><label>Nome: <input type="text" id="nome" required></label></p>
+        <p><label>Categoria:
+            <select id="id_categoria" required></select>
+        </label></p>
+        <p><label>Descrição: <input type="text" id="descricao"></label></p>
+        <p><label>Preço: <input type="number" id="preco" min="0" step="0.01" required></label></p>
+        <p><label>Quantidade: <input type="number" id="quantidade_estoque" min="0" step="1" required></label></p>
+        <button type="submit">Salvar</button>
+        <button type="button" onclick="limparFormulario()">Limpar</button>
+    </form>
+
+    <p id="mensagem"></p>
+
+    <h2>Componentes cadastrados</h2>
+    <table border="1" cellpadding="5">
+        <thead>
+            <tr>
+                <th>ID</th><th>Nome</th><th>Categoria</th><th>Preço</th>
+                <th>Quantidade</th><th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="listaComponentes"></tbody>
+    </table>
+
+    <script>
+        const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+        if (!usuario) window.location.href = 'index.html';
+
+        async function carregarCategorias() {
+            const resposta = await fetch('/componentes/categorias');
+            const categorias = await resposta.json();
+            document.getElementById('id_categoria').innerHTML =
+                '<option value="">Selecione</option>' +
+                categorias.map(c => `<option value="${c.id_categoria}">${c.nome}</option>`).join('');
+        }
+
+        async function carregarComponentes() {
+            const resposta = await fetch('/componentes');
+            const componentes = await resposta.json();
+            document.getElementById('listaComponentes').innerHTML = componentes.map(c => `
+                <tr>
+                    <td>${c.id_componente}</td>
+                    <td>${c.nome}</td>
+                    <td>${c.categoria}</td>
+                    <td>R$ ${Number(c.preco).toFixed(2)}</td>
+                    <td>${c.quantidade_estoque}</td>
+                    <td>
+                        <button onclick="editarComponente(${c.id_componente})">Editar</button>
+                        <button onclick="excluirComponente(${c.id_componente})">Excluir</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function editarComponente(id) {
+            const resposta = await fetch('/componentes');
+            const componentes = await resposta.json();
+            const c = componentes.find(item => item.id_componente === id);
+            if (!c) return;
+
+            document.getElementById('id_componente').value = c.id_componente;
+            document.getElementById('nome').value = c.nome;
+            document.getElementById('id_categoria').value = c.id_categoria;
+            document.getElementById('descricao').value = c.descricao || '';
+            document.getElementById('preco').value = c.preco;
+            document.getElementById('quantidade_estoque').value = c.quantidade_estoque;
+        }
+
+        async function excluirComponente(id) {
+            if (!confirm('Deseja excluir este componente?')) return;
+            const resposta = await fetch('/componentes/' + id, { method: 'DELETE' });
+            const dados = await resposta.json();
+            document.getElementById('mensagem').textContent = dados.mensagem;
+            carregarComponentes();
+        }
+
+        function limparFormulario() {
+            document.getElementById('formComponente').reset();
+            document.getElementById('id_componente').value = '';
+        }
+
+        document.getElementById('formComponente').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('id_componente').value;
+            const dados = {
+                id_categoria: document.getElementById('id_categoria').value,
+                id_usuario: usuario.id_usuario,
+                nome: document.getElementById('nome').value,
+                descricao: document.getElementById('descricao').value,
+                preco: document.getElementById('preco').value,
+                quantidade_estoque: document.getElementById('quantidade_estoque').value
+            };
+
+            const resposta = await fetch(id ? '/componentes/' + id : '/componentes', {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+
+            const retorno = await resposta.json();
+            document.getElementById('mensagem').textContent = retorno.mensagem;
+            limparFormulario();
+            carregarComponentes();
+        });
+
+        carregarCategorias();
+        carregarComponentes();
+    </script>
+</body>
+</html>

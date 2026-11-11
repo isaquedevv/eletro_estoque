@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório - Eletro Kurumin</title>
+</head>
+<body>
+    <h1>Relatório de estoque</h1>
+    <p><a href="componentes.html">Voltar aos componentes</a></p>
+
+    <table border="1" cellpadding="5">
+        <thead>
+            <tr>
+                <th>ID</th><th>Componente</th><th>Categoria</th>
+                <th>Preço unitário</th><th>Quantidade</th><th>Valor total</th>
+            </tr>
+        </thead>
+        <tbody id="listaRelatorio"></tbody>
+    </table>
+
+    <h2 id="valorTotal">Valor total do estoque: R$ 0,00</h2>
+
+    <script>
+        async function carregarRelatorio() {
+            const resposta = await fetch('/relatorio');
+            const dados = await resposta.json();
+
+            document.getElementById('listaRelatorio').innerHTML = dados.itens.map(item => `
+                <tr>
+                    <td>${item.id_componente}</td>
+                    <td>${item.nome}</td>
+                    <td>${item.categoria}</td>
+                    <td>R$ ${Number(item.preco).toFixed(2)}</td>
+                    <td>${item.quantidade_estoque}</td>
+                    <td>R$ ${Number(item.valor_total).toFixed(2)}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('valorTotal').textContent =
+                'Valor total do estoque: R$ ' + Number(dados.valor_total_estoque).toFixed(2);
+        }
+
+        carregarRelatorio();
+    </script>
+</body>
+</html>

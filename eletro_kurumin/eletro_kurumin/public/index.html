@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Eletro Kurumin</title>
+</head>
+<body>
+    <h1>Eletro Kurumin</h1>
+    <h2>Login</h2>
+
+    <form id="formLogin">
+        <p><label>E-mail: <input type="email" id="email" required></label></p>
+        <p><label>Senha: <input type="password" id="senha" required></label></p>
+        <button type="submit">Entrar</button>
+    </form>
+
+    <p id="mensagem"></p>
+    <p><a href="cadastro.html">Cadastrar usuário</a></p>
+
+    <script>
+        document.getElementById('formLogin').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const resposta = await fetch('/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('email').value,
+                    senha: document.getElementById('senha').value
+                })
+            });
+
+            const dados = await resposta.json();
+            document.getElementById('mensagem').textContent = dados.mensagem || '';
+
+            if (dados.isAuth) {
+                localStorage.setItem('usuario', JSON.stringify(dados.usuario));
+                window.location.href = 'componentes.html';
+            }
+        });
+    </script>
+</body>
+</html>
